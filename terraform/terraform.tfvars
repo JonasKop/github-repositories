@@ -20,6 +20,15 @@ repositories = {
   github-repositories : {
     description : "Github repositories configuration."
     statusCheck : true
+    variables : {
+      TF_CLOUD_ORGANIZATION : "jonas"
+      TF_WORKSPACE : "github-repositories"
+    }
+    secrets : {
+      TF_API_TOKEN : "terraformCloudToken"
+      GOOGLE_CREDENTIALS : "githubGcpCredentialsJson"
+      ADMIN_GITHUB_TOKEN : "githubAdminToken"
+    }
   }
 
   // Tools

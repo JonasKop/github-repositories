@@ -2,6 +2,11 @@ terraform {
   cloud {}
 
   required_providers {
+    google = {
+      source  = "hashicorp/google"
+      version = "5.10.0"
+    }
+
     github = {
       source  = "integrations/github"
       version = "5.42.0"
@@ -11,10 +16,42 @@ terraform {
 
 provider "github" {}
 
+provider "google" {
+  project = "home-394919"
+  region  = "europe-north1"
+}
+
 variable "repositories" {
   default = []
 }
 
+locals {
+  // Contain all repository variables in a map structure
+  repo_variables = merge([
+    // Loop over all variables in each repository
+    for repoName, repo in var.repositories : {
+      for key, value in lookup(repo, "variables", {}) : "${repoName}-${key}" => {
+        repo  = repoName
+        key   = key
+        value = value
+      }
+    }
+  ]...)
+
+  // Contain all repository secrets in a map structure
+  repo_secrets = merge([
+    // Loop over all secrets in each repository
+    for repoName, repo in var.repositories : {
+      for key, value in lookup(repo, "secrets", {}) : "${repoName}-${key}" => {
+        repo  = repoName
+        key   = key
+        value = value
+      }
+    }
+  ]...)
+}
+
+// All github repositories
 resource "github_repository" "repos" {
   for_each    = var.repositories
   name        = each.key
@@ -30,6 +67,7 @@ resource "github_repository" "repos" {
   has_issues = true
 }
 
+# Basic main branch protection rule
 resource "github_branch_protection" "main_branch" {
   for_each      = var.repositories
   repository_id = github_repository.repos[each.key].node_id
@@ -41,4 +79,26 @@ resource "github_branch_protection" "main_branch" {
       strict = true
     }
   }
+}
+
+# Github actions variables
+resource "github_actions_variable" "variable" {
+  for_each      = local.repo_variables
+  repository    = github_repository.repos[each.value.repo].name
+  variable_name = each.value.key
+  value         = each.value.value
+}
+
+# GCP Secret manager secrets for github actions
+data "google_secret_manager_secret_version_access" "secret" {
+  for_each = local.repo_secrets
+  secret   = each.value.value
+}
+
+# Github actions secrets
+resource "github_actions_secret" "secret" {
+  for_each        = local.repo_secrets
+  repository      = github_repository.repos[each.value.repo].name
+  secret_name     = each.value.key
+  plaintext_value = data.google_secret_manager_secret_version_access.secret[each.key].secret_data
 }

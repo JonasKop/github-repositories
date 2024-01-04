@@ -1,0 +1,32 @@
+name: Terraform apply
+
+on:
+  push:
+    branches:
+      - main
+    paths:
+      - terraform/**
+      - .github/workflows/terraform*
+  workflow_dispatch:
+
+env:
+  TF_CLOUD_ORGANIZATION: ${{ vars.TF_CLOUD_ORGANIZATION }}
+  TF_WORKSPACE: ${{ vars.TF_WORKSPACE }}
+  GITHUB_TOKEN: ${{ secrets.ADMIN_GITHUB_TOKEN }}
+
+jobs:
+  terraform_apply:
+    runs-on: ubuntu-22.04
+    name: Terraform apply
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: google-github-actions/auth@v0.4.0
+        with:
+          credentials_json: ${{ secrets.GOOGLE_CREDENTIALS }}
+
+      - name: Terraform apply
+        uses: jonaskop/custom-github-actions/terraform-apply@main
+        with:
+          terraform-cloud-token: ${{ secrets.TF_API_TOKEN }}
+          working-directory: ./terraform
