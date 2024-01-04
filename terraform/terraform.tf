@@ -34,4 +34,11 @@ resource "github_branch_protection" "main_branch" {
   for_each      = var.repositories
   repository_id = github_repository.repos[each.key].node_id
   pattern       = "main"
+
+  dynamic "required_status_checks" {
+    for_each = lookup(var.repositories[each.key], "statusCheck", false) ? [""] : []
+    content {
+      strict = true
+    }
+  }
 }
