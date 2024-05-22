@@ -6,9 +6,10 @@ import os, subprocess, json, yaml, requests
 def getTerraformRepositories():
     # Get terraform state in json format
     terraformStateString = subprocess.check_output(
-        ["terraform", "show", "-json"]
+        ["terraform", "-chdir=../terraform" ,"show", "-json"]
     ).decode("utf-8")
     terraformState = json.loads(terraformStateString)
+
     # Fetch github repository names from terraform state
     terraformStateRepositories = [
         x

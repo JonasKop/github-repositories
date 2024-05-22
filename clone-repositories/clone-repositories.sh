@@ -3,8 +3,7 @@
 set -eu
 
 # Require environment variables
-export TF_CLOUD_ORGANIZATION=$TF_CLOUD_ORGANIZATION \
-    TF_WORKSPACE=$TF_WORKSPACE
+export DOPPLER_TOKEN=$DOPPLER_TOKEN
 
 # Get git repo path and cd to it
 gitRepoPath=$(git rev-parse --show-toplevel)

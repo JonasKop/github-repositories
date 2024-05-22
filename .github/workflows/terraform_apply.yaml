@@ -10,9 +10,8 @@ on:
   workflow_dispatch:
 
 env:
-  TF_CLOUD_ORGANIZATION: ${{ vars.TF_CLOUD_ORGANIZATION }}
-  TF_WORKSPACE: ${{ vars.TF_WORKSPACE }}
   GITHUB_TOKEN: ${{ secrets.ADMIN_GITHUB_TOKEN }}
+  DOPPLER_TOKEN: ${{ secrets.DOPPLER_TOKEN }}
 
 jobs:
   terraform_apply:
@@ -20,10 +19,6 @@ jobs:
     name: Terraform apply
     steps:
       - uses: actions/checkout@v4
-
-      - uses: google-github-actions/auth@v0.4.0
-        with:
-          credentials_json: ${{ secrets.GOOGLE_CREDENTIALS }}
 
       - name: Terraform apply
         uses: jonaskop/custom-github-actions/terraform-apply@main

@@ -1,10 +1,15 @@
 terraform {
-  cloud {}
+  cloud {
+    organization = "jonas"
+    workspaces {
+      name = "github-repositories"
+    }
+  }
 
   required_providers {
-    google = {
-      source  = "hashicorp/google"
-      version = "5.10.0"
+    doppler = {
+      source  = "DopplerHQ/doppler"
+      version = "1.7.1"
     }
 
     github = {
@@ -16,10 +21,7 @@ terraform {
 
 provider "github" {}
 
-provider "google" {
-  project = "home-394919"
-  region  = "europe-north1"
-}
+provider "doppler" {}
 
 variable "repositories" {
   default = []
@@ -50,6 +52,8 @@ locals {
     }
   ]...)
 }
+
+data "doppler_secrets" "this" {}
 
 // All github repositories
 resource "github_repository" "repos" {
@@ -89,16 +93,10 @@ resource "github_actions_variable" "variable" {
   value         = each.value.value
 }
 
-# GCP Secret manager secrets for github actions
-data "google_secret_manager_secret_version_access" "secret" {
-  for_each = local.repo_secrets
-  secret   = each.value.value
-}
-
 # Github actions secrets
 resource "github_actions_secret" "secret" {
   for_each        = local.repo_secrets
   repository      = github_repository.repos[each.value.repo].name
   secret_name     = each.value.key
-  plaintext_value = data.google_secret_manager_secret_version_access.secret[each.key].secret_data
+  plaintext_value = data.doppler_secrets.this.map[each.value.value]
 }
