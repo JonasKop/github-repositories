@@ -3,6 +3,9 @@ repositories = {
   home-assistant-configuration : {
     description : "Home assistant configuration."
   }
+  zigbee2mqtt-configuration : {
+    description : "Zigbee2MQTT configuration."
+  }
   mosquitto-configuration : {
     description : "Mosquitto configuration."
   }
